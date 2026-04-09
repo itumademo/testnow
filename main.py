@@ -179,13 +179,25 @@ def fetch_disclosures(date_str: str) -> dict:
         data = resp.json()
         items = data if isinstance(data, list) else data.get("items", [])
 
+        # デバッグ: 最初のアイテムの構造を確認
+        if items:
+            first = items[0]
+            print(f"[TDNet] JSON keys of first item: {list(first.keys())}")
+            if "Tdnet" in first:
+                print(f"[TDNet] Nested Tdnet keys: {list(first['Tdnet'].keys())}")
+
         for item in items:
+            # やのしんAPIのJSON構造:
+            # パターンA（ネスト型）: {"Tdnet": {"company_name": ..., "title": ..., ...}}
+            # パターンB（フラット型）: {"company_name": ..., "title": ..., ...}
+            tdnet = item.get("Tdnet", item)  # ネストがあればTdnetの中身を使う
+
             d = Disclosure(
-                company_name=item.get("company_name", ""),
-                title=item.get("title", ""),
-                url=item.get("document_url", item.get("url", "")),
-                disclosed_at=item.get("disclosed_date", ""),
-                stock_code=item.get("company_code", ""),
+                company_name=tdnet.get("company_name", ""),
+                title=tdnet.get("title", ""),
+                url=tdnet.get("document_url", tdnet.get("url", "")),
+                disclosed_at=tdnet.get("pubdate", tdnet.get("disclosed_date", "")),
+                stock_code=tdnet.get("company_code", ""),
             )
             classify(d)
             disclosures.append(d)
