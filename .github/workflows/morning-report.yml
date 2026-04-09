@@ -1,0 +1,19 @@
+name: 朝レポート配信
+
+on:
+  schedule:
+    - cron: '30 21 * * 0-4'  # UTC 21:30 = JST 06:30（月〜金）
+  workflow_dispatch:  # 手動実行
+
+jobs:
+  morning-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install httpx
+      - run: python main.py
+        env:
+          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
