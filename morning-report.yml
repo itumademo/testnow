@@ -1,0 +1,30 @@
+name: 朝レポート配信
+
+on:
+  schedule:
+    # UTC 21:30 = JST 06:30（毎朝6:30に実行）
+    # 注意: GitHub Actionsのcronは±15分のズレがある
+    - cron: '30 21 * * 0-4'  # 日〜木（= JST月〜金の朝）
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  morning-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run morning report
+        env:
+          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
+        run: python main.py
